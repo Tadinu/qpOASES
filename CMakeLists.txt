@@ -29,9 +29,25 @@
 ##     Date:      2007-2017
 ##
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.5)
+project(qpOASES)
 
-PROJECT(qpOASES CXX)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 SET(PACKAGE_NAME "qpOASES")
 SET(PACKAGE_VERSION "3.2.2")
 SET(PACKAGE_SO_VERSION "3.2")
@@ -137,37 +153,12 @@ SET_TARGET_PROPERTIES(
     )
 
 # headers
-INSTALL(FILES include/qpOASES.hpp
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-INSTALL(DIRECTORY include/qpOASES
+INSTALL(DIRECTORY include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING PATTERN "*.hpp"
+  FILES_MATCHING
+  PATTERN "*.hpp"
   PATTERN "*.ipp"
   PATTERN ".svn" EXCLUDE)
-
-############################################################
-######################### Package Config ###################
-############################################################
-
-include(CMakePackageConfigHelpers)
-set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-configure_package_config_file(qpOASESConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/qpOASESConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/qpOASES
-  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
-
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/qpOASESConfigVersion.cmake
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY SameMajorVersion)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qpOASESConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/qpOASESConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/qpOASES
-    COMPONENT qpOASES)
 
 ############################################################
 ######################### examples #########################
@@ -194,6 +185,12 @@ if (QPOASES_BUILD_EXAMPLES)
         TARGET_LINK_LIBRARIES(${ELEMENT} qpOASES)
     ENDFOREACH(ELEMENT ${EXAMPLE_NAMES})
 endif(QPOASES_BUILD_EXAMPLES)
+
+# Export dependencies, include for downstream/client CMake-based packages
+ament_export_dependencies()
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_package()
 
 ##
 ##   end of file
